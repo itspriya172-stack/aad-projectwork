@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subjects & Topics — Smart Study Planner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar" id="topbar"></header>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main">
+      <header class="page-header">
+        <div>
+          <h1>Subjects &amp; Topics</h1>
+          <p>Add exams, then break each subject into topics with difficulty, importance and estimated hours.</p>
+        </div>
+        <div class="flex">
+          <button class="btn btn-secondary" id="btn-reset-sample"><i class="fa-solid fa-rotate"></i> Load sample data</button>
+          <button class="btn" id="btn-add-subject"><i class="fa-solid fa-plus"></i> Add subject</button>
+        </div>
+      </header>
+
+      <section class="card mb" id="filter-bar">
+        <div class="flex space-between">
+          <div class="flex">
+            <label style="margin:0">Status filter</label>
+            <div class="segmented" id="status-filter">
+              <button data-v="all" class="active">All</button>
+              <button data-v="pending">Pending</button>
+              <button data-v="in-progress">In progress</button>
+              <button data-v="completed">Completed</button>
+            </div>
+          </div>
+          <div class="flex">
+            <label style="margin:0">Sort topics by</label>
+            <select id="sort-select" style="width:auto">
+              <option value="priority">Priority (merge sort)</option>
+              <option value="deadline">Deadline</option>
+              <option value="name">Name</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid grid-2" id="subject-grid" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <!-- Subject modal -->
+  <div class="modal-backdrop" id="subject-modal">
+    <form class="modal" id="subject-form">
+      <h2 id="subject-modal-title">Add subject</h2>
+      <input type="hidden" id="subject-id">
+      <div class="form-row">
+        <div style="grid-column: span 2"><label for="subject-name">Subject name *</label><input id="subject-name" required placeholder="e.g. Operating Systems"></div>
+      </div>
+      <div class="form-row">
+        <div><label for="subject-code">Code</label><input id="subject-code" placeholder="CS303"></div>
+        <div><label for="subject-exam">Exam date *</label><input id="subject-exam" type="date" required></div>
+        <div><label for="subject-color">Colour</label><input id="subject-color" type="color" value="#6366f1"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('subject-modal')">Cancel</button>
+        <button type="submit" class="btn"><i class="fa-solid fa-floppy-disk"></i> Save subject</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Topic modal -->
+  <div class="modal-backdrop" id="topic-modal">
+    <form class="modal" id="topic-form">
+      <h2 id="topic-modal-title">Add topic</h2>
+      <input type="hidden" id="topic-id">
+      <div class="form-row">
+        <div style="grid-column: span 2"><label for="topic-name">Topic name *</label><input id="topic-name" required placeholder="e.g. Deadlocks"></div>
+      </div>
+      <div class="form-row">
+        <div><label for="topic-subject">Subject *</label><select id="topic-subject" required></select></div>
+        <div><label for="topic-prereq">Prerequisite topic</label><select id="topic-prereq"><option value="">— none —</option></select></div>
+      </div>
+      <div class="form-row">
+        <div><label for="topic-difficulty">Difficulty (1–5)</label><div class="range-wrap"><input id="topic-difficulty" type="range" min="1" max="5" value="3"><span class="range-val" id="difficulty-val">3</span></div></div>
+        <div><label for="topic-importance">Importance (1–5)</label><div class="range-wrap"><input id="topic-importance" type="range" min="1" max="5" value="3"><span class="range-val" id="importance-val">3</span></div></div>
+      </div>
+      <div class="form-row">
+        <div><label for="topic-duration">Estimated hours *</label><input id="topic-duration" type="number" min="0.5" step="0.5" value="2" required></div>
+        <div><label for="topic-done">Hours already done</label><input id="topic-done" type="number" min="0" step="0.5" value="0"></div>
+        <div><label for="topic-status">Status</label><select id="topic-status"><option value="pending">Pending</option><option value="in-progress">In progress</option><option value="completed">Completed</option></select></div>
+      </div>
+      <div class="alert alert-info small" id="priority-preview"><i class="fa-solid fa-calculator"></i><span></span></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('topic-modal')">Cancel</button>
+        <button type="submit" class="btn"><i class="fa-solid fa-floppy-disk"></i> Save topic</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="js/algorithms.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/sample-data.js"></script>
+  <script src="js/subjects.js"></script>
+</body>
+</html>

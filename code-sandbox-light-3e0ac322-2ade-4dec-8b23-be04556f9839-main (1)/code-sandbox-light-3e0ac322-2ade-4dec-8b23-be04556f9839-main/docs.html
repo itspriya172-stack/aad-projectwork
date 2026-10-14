@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DAA Documentation — Smart Study Planner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar" id="topbar"></header>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main">
+      <header class="page-header">
+        <div>
+          <h1>Design &amp; Analysis Documentation</h1>
+          <p>Smart Study Planner — a Design and Analysis of Algorithms (DAA) project report</p>
+        </div>
+        <div class="flex no-print">
+          <button class="btn btn-secondary" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Save PDF</button>
+          <button class="btn" id="btn-run-tests"><i class="fa-solid fa-flask"></i> Run test-suite</button>
+        </div>
+      </header>
+
+      <div class="doc-layout">
+        <nav class="card doc-toc" aria-label="Table of contents">
+          <a href="#problem">1. Problem statement</a>
+          <a href="#objectives">2. Objectives &amp; scope</a>
+          <a href="#requirements">3. Requirements</a>
+          <a href="#architecture">4. System architecture</a>
+          <a href="#flowchart">5. Flowchart</a>
+          <a href="#algorithms">6. Algorithms &amp; pseudocode</a>
+          <a href="#complexity">7. Complexity analysis</a>
+          <a href="#cases">8. Best / average / worst case</a>
+          <a href="#comparison">9. Greedy vs DP</a>
+          <a href="#tests">10. Test cases &amp; outputs</a>
+          <a href="#sample">11. Sample timetable</a>
+          <a href="#pros">12. Advantages &amp; limitations</a>
+          <a href="#conclusion">13. Conclusion</a>
+        </nav>
+
+        <article class="card doc">
+
+          <!-- 1 -->
+          <section id="problem">
+            <h2>1. Problem statement</h2>
+            <p>Students preparing for several exams simultaneously must decide <em>what to study, when, and for how long</em>. Each topic has a different difficulty, a different weight in the exam, an estimated study time, and a hard deadline (the exam date). The student has only a limited number of study hours per day, and some topics can only be understood after others (prerequisites).</p>
+            <p>Manual planning is error-prone: urgent topics are forgotten, easy topics are over-studied, and unfinished work is never re-planned. We model this as a <strong>deadline-constrained scheduling problem</strong>: given a set of <em>n</em> topics with value (priority), processing time (hours) and deadlines, produce a timetable that maximises the total priority studied, never exceeds the daily hour budget, never schedules a topic after its exam, honours prerequisites, and tells the student clearly when the available time is insufficient.</p>
+            <p>The general version (maximising weighted completed jobs on a single machine with deadlines and arbitrary processing times) is NP-hard — it contains the 0/1 Knapsack problem as a special case. The project therefore uses a <strong>Greedy heuristic driven by a priority queue</strong> for the schedule itself, and <strong>Dynamic Programming (0/1 Knapsack)</strong> to choose the optimal subset of topics when time is short.</p>
+          </section>
+
+          <!-- 2 -->
+          <section id="objectives">
+            <h2>2. Objectives and scope</h2>
+            <h3>Objectives</h3>
+            <ul>
+              <li>Compute a numerical priority for every topic from its importance, difficulty and days remaining until the exam.</li>
+              <li>Generate an optimised day-by-day timetable within the user's daily study-hour limit.</li>
+              <li>Respect topic prerequisites and never schedule a topic on or after its exam.</li>
+              <li>Detect and report insufficient time; use DP to decide which topics to commit to.</li>
+              <li>Track progress (pending / in-progress / completed) and automatically reschedule unfinished work.</li>
+              <li>Visualise progress with charts, progress bars and statistics in a clean, responsive UI.</li>
+              <li>Genuinely implement and analyse the DAA concepts: Greedy, Sorting (Merge Sort), Priority Queue (Binary Max-Heap), Dynamic Programming (0/1 Knapsack), and Graph topological ordering (Kahn's algorithm) for prerequisites.</li>
+            </ul>
+            <h3>Scope</h3>
+            <ul>
+              <li><b>In scope:</b> single student, multiple subjects/topics, daily hour budget, slot-based timetable, persistence of plans, progress tracking, documentation and tests.</li>
+              <li><b>Out of scope:</b> multi-user accounts, calendar sync, learning-rate modelling (spaced repetition), server-side authentication.</li>
+            </ul>
+          </section>
+
+          <!-- 3 -->
+          <section id="requirements">
+            <h2>3. Functional and non-functional requirements</h2>
+            <h3>Functional requirements</h3>
+            <table>
+              <thead><tr><th>ID</th><th>Requirement</th><th>Where implemented</th></tr></thead>
+              <tbody>
+                <tr><td>FR1</td><td>Add / edit / delete subjects (name, code, exam date, colour)</td><td><code>subjects.html</code>, <code>js/subjects.js</code></td></tr>
+                <tr><td>FR2</td><td>Add / edit / delete topics (difficulty 1–5, importance 1–5, hours, prerequisite, status)</td><td><code>js/subjects.js</code></td></tr>
+                <tr><td>FR3</td><td>Set daily available hours, start time, slot size</td><td><code>timetable.html</code></td></tr>
+                <tr><td>FR4</td><td>Compute topic priority automatically</td><td><code>Algo.computePriority</code></td></tr>
+                <tr><td>FR5</td><td>Generate a timetable (Greedy / Greedy+DP)</td><td><code>Algo.generateSchedule</code>, <code>Algo.planWithDP</code></td></tr>
+                <tr><td>FR6</td><td>Show high-priority topics and upcoming exams</td><td><code>index.html</code></td></tr>
+                <tr><td>FR7</td><td>Track completed / in-progress / pending topics; tick off slots</td><td><code>js/timetable.js → toggleDone</code></td></tr>
+                <tr><td>FR8</td><td>Reschedule unfinished topics</td><td><code>Algo.findMissedSlots</code> + regenerate</td></tr>
+                <tr><td>FR9</td><td>Charts, progress bars and statistics</td><td><code>js/dashboard.js</code> (Chart.js)</td></tr>
+                <tr><td>FR10</td><td>Save plans and update them later</td><td>RESTful <code>tables/schedule</code>, <code>tables/settings</code></td></tr>
+                <tr><td>FR11</td><td>Report insufficient time, prerequisite cycles, expired exams</td><td><code>result.warnings</code></td></tr>
+              </tbody>
+            </table>
+            <h3>Non-functional requirements</h3>
+            <ul>
+              <li><b>Performance:</b> timetable for 50 topics × 60 days generated in &lt; 50 ms in the browser (O(D·n log n)).</li>
+              <li><b>Usability:</b> responsive layout (desktop, tablet, phone), colour-coded subjects, one-click generation.</li>
+              <li><b>Maintainability:</b> all algorithms isolated in <code>js/algorithms.js</code> (mirrored in <code>python/algorithms.py</code>), fully commented.</li>
+              <li><b>Reliability:</b> 13 automated test-cases (<code>js/tests.js</code>, <code>python/test_algorithms.py</code>); schedule validator checks every invariant.</li>
+              <li><b>Portability:</b> front-end runs on any modern browser; Python back-end needs only the standard library (+ SQLite).</li>
+            </ul>
+          </section>
+
+          <!-- 4 -->
+          <section id="architecture">
+            <h2>4. System architecture</h2>
+            <p>The system follows a three-layer architecture. The algorithm layer is deliberately pure (no DOM, no network) so that it can be unit-tested and reused by the Python back-end.</p>
+            <pre class="code">┌──────────────────────────────────────────────────────────────┐
+│  PRESENTATION  (HTML + CSS + Chart.js)                        │
+│  index.html · subjects.html · timetable.html · docs.html      │
+│  js/dashboard.js · js/subjects.js · js/timetable.js · app.js  │
+└──────────────┬───────────────────────────────┬───────────────┘
+               │ calls                         │ fetch() JSON
+┌──────────────▼───────────────┐  ┌────────────▼───────────────┐
+│  ALGORITHM LAYER             │  │  DATA LAYER                │
+│  js/algorithms.js            │  │  RESTful Table API         │
+│  • computePriority()  O(1)   │  │  tables/subjects           │
+│  • MaxHeap            O(log n)│ │  tables/topics             │
+│  • mergeSort()        O(n log n)│ tables/settings            │
+│  • detectCycle (Kahn) O(V+E) │  │  tables/schedule           │
+│  • generateSchedule() Greedy │  │  (hosted: Cloudflare D1)   │
+│  • knapsackSelect()   DP     │  │                            │
+└──────────────────────────────┘  └────────────────────────────┘
+        ▲ identical logic
+┌───────┴──────────────────────────────────────────────────────┐
+│  OPTIONAL PYTHON BACK-END   python/server.py (http.server)   │
+│  python/algorithms.py  ·  SQLite  python/planner.db           │
+│  GET/POST/PUT/DELETE /api/subjects /api/topics /api/schedule  │
+│  POST /api/generate  → runs the same greedy / DP planner      │
+└──────────────────────────────────────────────────────────────┘</pre>
+            <h3>Data model</h3>
+            <table>
+              <thead><tr><th>Table</th><th>Fields</th></tr></thead>
+              <tbody>
+                <tr><td><code>subjects</code></td><td>id, name, code, exam_date, color</td></tr>
+                <tr><td><code>topics</code></td><td>id, subject_id → subjects, name, difficulty (1-5), importance (1-5), duration (h), hours_done, status, prerequisite_id → topics</td></tr>
+                <tr><td><code>settings</code></td><td>id='default', daily_hours, start_time, slot_size, algorithm (greedy|dp), last_generated</td></tr>
+                <tr><td><code>schedule</code></td><td>id, date, day_index, start_time, end_time, topic_id, topic_name, subject_name, color, hours, priority, done, rescheduled</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          <!-- 5 -->
+          <section id="flowchart">
+            <h2>5. Flowchart — timetable generation</h2>
+            <div class="flow">
+              <div class="flow-node terminal">START</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node io">Input: subjects, topics, daily hours H, today</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node">Detect prerequisite cycles (Kahn's topological sort)</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node">Build work items: remaining = duration − hours_done<br>daysLeft = exam − today</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node decision">Mode = Greedy + DP ?</div>
+              <div class="flow-label">yes → 0/1 Knapsack: choose committed set maximising Σ priority within Σ H</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node">horizon = max(daysLeft) · day = 0</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node decision">day &lt; horizon ?</div>
+              <div class="flow-label">no → go to report</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node">Recompute priority(t, day) for all unfinished topics</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node">Heapify eligible topics (remaining&gt;0, exam not passed, prerequisite done)</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node decision">hoursLeft &gt; 0 and heap not empty ?</div>
+              <div class="flow-label">no → day = day + 1 (loop back)</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node">t = heap.pop() (greedy choice)<br>block = min(remaining, hoursLeft, perTopicCap)</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node io">Emit slot [clock, clock+block] for t · update remaining, hoursLeft</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node decision">t.remaining = 0 ?</div>
+              <div class="flow-label">yes → push dependants of t into heap</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node io">Report: slots, utilisation, unscheduled topics (insufficient time), warnings</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node">Save schedule to database · render timetable</div>
+              <div class="flow-arrow"></div>
+              <div class="flow-node terminal">END</div>
+            </div>
+          </section>
+
+          <!-- 6 -->
+          <section id="algorithms">
+            <h2>6. Algorithms and pseudocode</h2>
+
+            <h3>6.1 Priority formula</h3>
+            <div class="formula">Priority(t, day) = (2 · Importance<sub>t</sub> + Difficulty<sub>t</sub>) × Urgency(daysLeft)<br>Urgency(d) = 1 + 10 / (d + 1)</div>
+            <ul>
+              <li><b>Importance</b> is weighted twice because exam marks depend more on what is asked than on how hard it is.</li>
+              <li><b>Difficulty</b> adds weight so hard topics are started earlier (they need more consolidation time).</li>
+              <li><b>Urgency</b> is hyperbolic: 11× the day before an exam, 2.25× one week out, ≈1.3× one month out. It never reaches zero, so distant exams are still studied when nothing urgent remains. A topic whose exam has passed gets priority 0.</li>
+              <li>Priorities are <em>recomputed every simulated day</em>, so a topic naturally climbs the heap as its exam approaches.</li>
+            </ul>
+            <p>Example: Dynamic Programming (I=5, D=5) with 7 days left → (10+5) × (1+10/8) = 15 × 2.25 = <b>33.75</b>. Set Theory (I=3, D=2) with 19 days left → 8 × 1.5 = <b>12.0</b>.</p>
+
+            <h3>6.2 Binary Max-Heap (priority queue)</h3>
+<pre class="code"><span class="k">class</span> <span class="f">MaxHeap</span>(compare):
+    a ← []
+    <span class="k">procedure</span> <span class="f">PUSH</span>(x):            <span class="c">// O(log n)</span>
+        append x to a;  i ← |a|−1
+        <span class="k">while</span> i &gt; 0 <span class="k">and</span> compare(a[i], a[parent(i)]) &gt; 0:
+            swap a[i], a[parent(i)];  i ← parent(i)
+    <span class="k">procedure</span> <span class="f">POP</span>():             <span class="c">// O(log n)</span>
+        top ← a[0];  a[0] ← a.removeLast();  SIFT-DOWN(0);  <span class="k">return</span> top
+    <span class="k">procedure</span> <span class="f">SIFT-DOWN</span>(i):
+        <span class="k">loop</span>: l ← 2i+1; r ← 2i+2; best ← i
+              <span class="k">if</span> l &lt; n <span class="k">and</span> a[l] ≻ a[best]: best ← l
+              <span class="k">if</span> r &lt; n <span class="k">and</span> a[r] ≻ a[best]: best ← r
+              <span class="k">if</span> best = i: <span class="k">break</span>
+              swap a[i], a[best]; i ← best
+    <span class="k">static</span> <span class="f">HEAPIFY</span>(items):      <span class="c">// O(n) — Floyd's bottom-up build</span>
+        a ← items;  <span class="k">for</span> i ← ⌊n/2⌋−1 <span class="k">downto</span> 0: SIFT-DOWN(i)</pre>
+
+            <h3>6.3 Merge Sort (Divide &amp; Conquer) — ranking topics</h3>
+<pre class="code"><span class="k">function</span> <span class="f">MERGE-SORT</span>(A, compare):
+    <span class="k">if</span> |A| ≤ 1: <span class="k">return</span> A
+    mid ← ⌊|A|/2⌋
+    L ← MERGE-SORT(A[0..mid)),  R ← MERGE-SORT(A[mid..|A|))
+    <span class="k">return</span> MERGE(L, R)                   <span class="c">// stable: take from L when equal</span>
+
+<span class="c">// comparator used in the planner (ties broken deterministically)</span>
+<span class="k">function</span> <span class="f">BY-PRIORITY-DESC</span>(a, b):
+    <span class="k">if</span> a.priority ≠ b.priority: <span class="k">return</span> b.priority − a.priority
+    <span class="k">if</span> a.daysLeft ≠ b.daysLeft: <span class="k">return</span> a.daysLeft − b.daysLeft   <span class="c">// earlier exam first</span>
+    <span class="k">return</span> b.remaining − a.remaining                         <span class="c">// bigger job first</span></pre>
+            <p>Merge sort was chosen over quick sort because it is <em>stable</em> (two equal-priority topics keep their deadline order) and has a guaranteed Θ(n log n) worst case.</p>
+
+            <h3>6.4 Prerequisite check — Kahn's topological sort</h3>
+<pre class="code"><span class="k">function</span> <span class="f">DETECT-CYCLE</span>(topics):
+    indeg[v] ← 0 ∀v;  adj[u] ← []
+    <span class="k">for each</span> t with prerequisite p: adj[p].append(t); indeg[t]++
+    Q ← all v with indeg[v] = 0;  visited ← 0
+    <span class="k">while</span> Q ≠ ∅: u ← Q.dequeue(); visited++
+        <span class="k">for</span> v <span class="k">in</span> adj[u]: indeg[v]--; <span class="k">if</span> indeg[v] = 0: Q.enqueue(v)
+    <span class="k">return</span> visited = |topics| ? NONE : { v | indeg[v] &gt; 0 }       <span class="c">// O(V+E)</span></pre>
+
+            <h3>6.5 Greedy slot scheduler (core algorithm)</h3>
+<pre class="code"><span class="k">function</span> <span class="f">GENERATE-SCHEDULE</span>(topics, subjects, H, today):
+    work ← { t : remaining(t) &gt; 0 <span class="k">and</span> daysLeft(t) &gt; 0 }
+    horizon ← max daysLeft over work
+    cap ← ⌈H / 2⌉                                   <span class="c">// max hours per topic per day (pass 1)</span>
+    <span class="k">for</span> day ← 0 <span class="k">to</span> horizon − 1:
+        <span class="k">for each</span> t in work: t.priority ← PRIORITY(t, today + day)
+        hoursLeft ← H
+        <span class="k">for</span> capped <span class="k">in</span> [true, false]:                <span class="c">// pass 2 lifts the cap if time is left</span>
+            heap ← HEAPIFY({ t ∈ work : ELIGIBLE(t) })  <span class="c">// O(n)</span>
+            <span class="k">while</span> hoursLeft &gt; 0 <span class="k">and</span> heap ≠ ∅:
+                t ← heap.POP()                            <span class="c">// greedy choice: highest priority</span>
+                block ← min(t.remaining, hoursLeft, capped ? cap − givenToday[t] : ∞)
+                EMIT slot(day, clock, clock+block, t)
+                t.remaining −= block;  hoursLeft −= block;  clock += block
+                <span class="k">if</span> t.remaining = 0: <span class="k">for</span> d <span class="k">in</span> dependants[t]: <span class="k">if</span> ELIGIBLE(d): heap.PUSH(d)
+    unscheduled ← { t ∈ work : t.remaining &gt; 0 }     <span class="c">// insufficient time</span>
+    <span class="k">return</span> slots, unscheduled, warnings
+
+<span class="k">function</span> <span class="f">ELIGIBLE</span>(t): t.remaining &gt; 0 <span class="k">and</span> t.daysLeft &gt; 0 <span class="k">and</span>
+                     (no prerequisite <span class="k">or</span> prerequisite.remaining = 0)</pre>
+            <p><b>Greedy-choice property:</b> at every slot we take the topic with the highest current priority. Because urgency is monotone in days-left and a topic's exam date never moves, the ranking between two topics of the <em>same</em> subject never changes; between subjects it changes only in favour of the nearer exam — exactly the behaviour a student wants. Prerequisites are handled Kahn-style: a dependant enters the heap only when its prerequisite has been fully scheduled, which guarantees ordering with zero extra sorting.</p>
+            <p><b>Why the per-topic cap?</b> Without it the greedy would put all 5 daily hours on one topic. The cap of ⌈H/2⌉ forces at least two topics per day (better retention — interleaving), and a second pass without the cap guarantees no hour is wasted when only one topic is eligible.</p>
+
+            <h3>6.6 0/1 Knapsack — Dynamic Programming topic selection</h3>
+            <p>When Σ remaining hours &gt; total budget B = H × horizon, not everything can be finished. We choose the subset of topics maximising total priority:</p>
+            <div class="formula">maximise Σ p<sub>i</sub>·x<sub>i</sub>  subject to  Σ h<sub>i</sub>·x<sub>i</sub> ≤ B,  x<sub>i</sub> ∈ {0, 1}<br>dp[i][w] = max( dp[i−1][w],  dp[i−1][w − h<sub>i</sub>] + p<sub>i</sub> )  if h<sub>i</sub> ≤ w</div>
+<pre class="code"><span class="k">function</span> <span class="f">KNAPSACK-SELECT</span>(items, B):
+    W ← B / slotSize;  n ← |items|
+    dp ← (n+1) × (W+1) table of 0
+    <span class="k">for</span> i ← 1 <span class="k">to</span> n:
+        <span class="k">for</span> w ← 0 <span class="k">to</span> W:
+            dp[i][w] ← dp[i−1][w]
+            <span class="k">if</span> h<sub>i</sub> ≤ w <span class="k">and</span> dp[i−1][w−h<sub>i</sub>] + p<sub>i</sub> &gt; dp[i][w]:
+                dp[i][w] ← dp[i−1][w−h<sub>i</sub>] + p<sub>i</sub>
+    <span class="c">// reconstruction</span>
+    selected ← ∅;  w ← W
+    <span class="k">for</span> i ← n <span class="k">downto</span> 1:
+        <span class="k">if</span> dp[i][w] ≠ dp[i−1][w]: selected.add(items[i]); w ← w − h<sub>i</sub>
+    <span class="k">return</span> selected, dp[n][W]</pre>
+            <p><b>Optimal substructure:</b> an optimal selection from the first <i>i</i> items with budget <i>w</i> either excludes item <i>i</i> (then it is optimal for <i>i−1, w</i>) or includes it (then the rest is optimal for <i>i−1, w−h<sub>i</sub></i>). <b>Overlapping sub-problems:</b> dp[i−1][·] is reused for every w, so memoising in a table avoids the 2<sup>n</sup> brute force.</p>
+            <p>In <em>Greedy + DP</em> mode the committed set becomes tier 0 in the heap comparator — the scheduler always prefers committed topics, and fills leftover hours with the rest "best-effort".</p>
+
+            <h3>6.7 Rescheduling</h3>
+            <p>Slots whose date is before today and that were not ticked off are "missed". Because the scheduler always starts from <code>remaining = duration − hours_done</code>, regenerating from today automatically carries every unfinished hour forward; missed topics are flagged <code>rescheduled</code> (↻) in the timetable. Cost O(S) over saved slots plus one regeneration.</p>
+          </section>
+
+          <!-- 7 -->
+          <section id="complexity">
+            <h2>7. Time and space complexity analysis</h2>
+            <p>Notation: <i>n</i> = number of topics, <i>D</i> = days in the planning horizon, <i>k</i> = slots per day (≤ H/slotSize), <i>W</i> = total budget in slot units, <i>V, E</i> = topics and prerequisite edges.</p>
+            <table>
+              <thead><tr><th>Component</th><th>Time</th><th>Space</th><th>Justification</th></tr></thead>
+              <tbody>
+                <tr><td>computePriority</td><td>Θ(1)</td><td>Θ(1)</td><td>constant arithmetic</td></tr>
+                <tr><td>buildWorkItems</td><td>Θ(n + s)</td><td>Θ(n)</td><td>hash-join topics with s subjects</td></tr>
+                <tr><td>MaxHeap push / pop</td><td>O(log n)</td><td>Θ(n)</td><td>heap height ⌊log₂ n⌋</td></tr>
+                <tr><td>MaxHeap.heapify</td><td>Θ(n)</td><td>Θ(n)</td><td>Σ (n/2<sup>h+1</sup>)·O(h) = O(n)</td></tr>
+                <tr><td>mergeSort</td><td>Θ(n log n)</td><td>Θ(n)</td><td>T(n)=2T(n/2)+Θ(n), Master theorem case 2</td></tr>
+                <tr><td>detectPrerequisiteCycle</td><td>Θ(V + E)</td><td>Θ(V + E)</td><td>Kahn's algorithm, E ≤ V</td></tr>
+                <tr><td><b>generateSchedule</b></td><td><b>O(D · n log n)</b></td><td>Θ(n + D·k)</td><td>per day: Θ(n) priority refresh + Θ(n) heapify + ≤ 2k pops and ≤ n pushes at O(log n)</td></tr>
+                <tr><td>knapsackSelect</td><td>Θ(n · W)</td><td>Θ(n · W)</td><td>pseudo-polynomial; Θ(W) if reconstruction not needed</td></tr>
+                <tr><td>greedySelect</td><td>Θ(n log n)</td><td>Θ(n)</td><td>one merge sort + linear scan</td></tr>
+                <tr><td>findMissedSlots</td><td>Θ(S)</td><td>Θ(S)</td><td>linear filter over S saved slots</td></tr>
+                <tr><td>validateSchedule</td><td>Θ(S log k + n)</td><td>Θ(n)</td><td>sort k slots per day + hash lookups</td></tr>
+              </tbody>
+            </table>
+            <p>With realistic inputs (n = 20 topics, D = 20 days, H = 5 h) the scheduler performs roughly 20 × (20 + 20·log 20) ≈ 2 000 elementary operations — instantaneous. Even n = 500, D = 365 is about 1.6 million operations, still well under a second in JavaScript.</p>
+            <h3>Space detail</h3>
+            <ul>
+              <li>Work items: one object per topic — Θ(n).</li>
+              <li>Heap: array of at most n references — Θ(n), rebuilt per day (freed afterwards).</li>
+              <li>Output: at most 2k slots per day (two passes) — Θ(D·k).</li>
+              <li>Knapsack: Float64Array of (n+1)(W+1) doubles; for n = 20, W = 100 that is 2 121 × 8 B ≈ 17 KB.</li>
+            </ul>
+          </section>
+
+          <!-- 8 -->
+          <section id="cases">
+            <h2>8. Best-case, average-case and worst-case analysis</h2>
+            <table>
+              <thead><tr><th>Algorithm</th><th>Best case</th><th>Average case</th><th>Worst case</th></tr></thead>
+              <tbody>
+                <tr><td>Merge sort</td><td>Θ(n log n) — already sorted still splits fully; ≈ n/2·log n comparisons</td><td>Θ(n log n)</td><td>Θ(n log n) — ≈ n·log n − n + 1 comparisons</td></tr>
+                <tr><td>Heap push</td><td>Ω(1) — new item not larger than parent</td><td>O(1) amortised for random keys (expected ~2.6 comparisons)</td><td>O(log n) — new maximum sifts to the root</td></tr>
+                <tr><td>Heap pop</td><td>Ω(1) — heap of size 1</td><td>Θ(log n)</td><td>Θ(log n) — last element sifts to a leaf</td></tr>
+                <tr><td>Greedy scheduler</td><td>Ω(n) — all topics completed or expired: single pass, no days simulated</td><td>Θ(D·(n + k log n)) — only k ≪ n pops per day</td><td>O(D·n log n) — every topic eligible every day and tiny slot size makes k ≈ n</td></tr>
+                <tr><td>0/1 Knapsack DP</td><td>Θ(n·W) — the table is always filled completely</td><td>Θ(n·W)</td><td>Θ(n·W); W grows if slot size shrinks (30-min slots double W)</td></tr>
+                <tr><td>Kahn cycle check</td><td>Θ(V) — no edges</td><td>Θ(V+E)</td><td>Θ(V+E) — chain of prerequisites</td></tr>
+              </tbody>
+            </table>
+            <p><b>Quality (not time) analysis of the Greedy scheduler:</b> when the total hours fit in the budget (the common case) the greedy produces a complete, feasible schedule — every topic is finished before its exam, provided a per-subject EDF-style ordering exists. When time is insufficient the greedy drops the lowest-priority topics <em>at the end</em>, which may be sub-optimal in total value (see §9). This is why DP is offered as the selection step.</p>
+          </section>
+
+          <!-- 9 -->
+          <section id="comparison">
+            <h2>9. Comparison: Greedy algorithm vs Dynamic Programming</h2>
+            <table>
+              <thead><tr><th>Criterion</th><th>Greedy (priority queue)</th><th>Dynamic Programming (0/1 Knapsack)</th></tr></thead>
+              <tbody>
+                <tr><td>Decision strategy</td><td>Locally best choice each slot; never revisited</td><td>Considers every include/exclude combination via sub-problem table</td></tr>
+                <tr><td>Optimality</td><td>Not guaranteed when time is insufficient (may pick two "dense" topics and waste leftover hours)</td><td>Guaranteed optimal total priority under the hour budget</td></tr>
+                <tr><td>Time complexity</td><td>O(D · n log n) — polynomial</td><td>Θ(n · W) — pseudo-polynomial in budget W</td></tr>
+                <tr><td>Space</td><td>Θ(n)</td><td>Θ(n · W) (Θ(W) without reconstruction)</td></tr>
+                <tr><td>Handles deadlines / prerequisites / time-of-day</td><td>Yes — natively, day by day</td><td>No — only the subset; still needs the greedy to place slots</td></tr>
+                <tr><td>Adapts as urgency changes</td><td>Yes, priorities refreshed every day</td><td>Uses priorities at generation time</td></tr>
+                <tr><td>Best used for</td><td>Building the actual timetable; situations where everything fits</td><td>Deciding <em>what to drop</em> when hours are short</td></tr>
+              </tbody>
+            </table>
+            <h3>Worked counter-example (TC10)</h3>
+            <p>Budget 10 h. Topics (priority, hours): A (60, 5h), B (50, 4h), C (50, 4h), D (10, 1h). Greedy-by-density picks B (12.5/h), C (12.5/h), then D → value <b>110</b>, 9 h used. DP picks A + B + D → value <b>120</b>, 10 h used. The planner shows this comparison live in <em>Greedy + DP</em> mode.</p>
+            <p><b>Conclusion of the comparison:</b> the two approaches are complementary. The project uses DP for the <em>selection</em> sub-problem (where optimality matters and W is small) and Greedy for the <em>sequencing</em> sub-problem (where constraints are rich and the input changes daily).</p>
+          </section>
+
+          <!-- 10 -->
+          <section id="tests">
+            <h2>10. Test cases and sample outputs</h2>
+            <p>The suite below executes the real <code>js/algorithms.js</code> in your browser. The identical cases exist for Python in <code>python/test_algorithms.py</code>.</p>
+            <div class="flex mb no-print"><button class="btn" id="btn-run-tests-2"><i class="fa-solid fa-flask"></i> Run test-suite</button><span class="muted small" id="test-summary"></span></div>
+            <div class="table-wrap">
+              <table id="test-table">
+                <thead><tr><th>#</th><th>Test case</th><th>Input / expectation</th><th>Result</th></tr></thead>
+                <tbody>
+                  <tr><td>TC1</td><td>Priority formula</td><td>I=5, D=5, d=0 → 165; d=9 → 30; exam passed → 0; closer exam &gt; farther</td><td class="r">—</td></tr>
+                  <tr><td>TC2</td><td>Max-heap ordering</td><td>push 5,1,9,3,7,2,8 → pop 9,8,7,5,3,2,1; heapify root = max</td><td class="r">—</td></tr>
+                  <tr><td>TC3</td><td>Merge sort</td><td>stable on equal keys; 1000 elements sorted; comparisons ≤ n log n</td><td class="r">—</td></tr>
+                  <tr><td>TC4</td><td>Cycle detection</td><td>a→b OK; a↔b reports {a, b}</td><td class="r">—</td></tr>
+                  <tr><td>TC5</td><td>Daily limit &amp; no overlap</td><td>4 × 4h topics, 3h/day, 6 days → 16h scheduled, no day &gt; 3h, validator clean</td><td class="r">—</td></tr>
+                  <tr><td>TC6</td><td>Urgency wins</td><td>Near exam (I3 D3) scheduled before far exam (I5 D5)</td><td class="r">—</td></tr>
+                  <tr><td>TC7</td><td>Prerequisites</td><td>"adv" (high priority) waits until "basic" is fully scheduled</td><td class="r">—</td></tr>
+                  <tr><td>TC8</td><td>Insufficient time</td><td>6h needed, 4h available → lowest priority topic reported short</td><td class="r">—</td></tr>
+                  <tr><td>TC9</td><td>Exam boundary</td><td>No slot on/after exam date; expired exam flagged</td><td class="r">—</td></tr>
+                  <tr><td>TC10</td><td>Knapsack vs greedy</td><td>Budget 10: DP = 120 &gt; greedy = 110; 44 DP cells</td><td class="r">—</td></tr>
+                  <tr><td>TC11</td><td>DP pipeline</td><td>9h budget, 12h needed → committed topics fully scheduled</td><td class="r">—</td></tr>
+                  <tr><td>TC12</td><td>Rescheduling</td><td>Missed slot detected; only remaining 3h re-planned</td><td class="r">—</td></tr>
+                  <tr><td>TC13</td><td>Empty input</td><td>No topics → empty plan, no error</td><td class="r">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- 11 -->
+          <section id="sample">
+            <h2>11. Sample subjects, topics and generated timetable</h2>
+            <p>The sample dataset (button <em>Load sample data</em> on the Subjects page) has 4 subjects and 19 topics. Exam dates are relative to today (T): DAA T+7, DBMS T+10, OS T+14, Discrete Maths T+19. Settings: 5 h/day, 09:00 start, 1 h slots. The table below is generated live by the real algorithm from that dataset:</p>
+            <div id="sample-output" class="table-wrap"><div class="empty">Generating…</div></div>
+          </section>
+
+          <!-- 12 -->
+          <section id="pros">
+            <h2>12. Advantages, limitations and future enhancements</h2>
+            <h3>Advantages</h3>
+            <ul>
+              <li>Mathematically explainable priorities — the student sees the formula and the score for every topic.</li>
+              <li>Hard constraints (daily hours, exam deadline, prerequisites, no duplicate slot) are guaranteed by construction and verified by a validator.</li>
+              <li>Fast: polynomial greedy; DP only on the small selection problem.</li>
+              <li>Honest about infeasibility — reports exactly which topics are short and by how many hours.</li>
+              <li>Progress is persistent; rescheduling is a single click.</li>
+            </ul>
+            <h3>Limitations</h3>
+            <ul>
+              <li>Greedy sequencing is a heuristic: when time is insufficient it does not guarantee maximal total priority (mitigated by the DP selection step).</li>
+              <li>Priority weights (2:1, hyperbolic urgency) are fixed design constants rather than learned per student.</li>
+              <li>The knapsack treats topics as all-or-nothing; partial credit for a half-studied topic is not modelled in the selection step.</li>
+              <li>Single study block per day (start time + consecutive slots); breaks and multiple sessions are not modelled.</li>
+              <li>Static front-end persistence: no multi-user authentication.</li>
+            </ul>
+            <h3>Future enhancements</h3>
+            <ul>
+              <li>Spaced-repetition revision slots (Ebbinghaus forgetting-curve) scheduled after each topic is completed.</li>
+              <li>Fractional knapsack / weighted-interval DP to give partial value for partially studied topics.</li>
+              <li>Multiple daily sessions and break scheduling (interval partitioning).</li>
+              <li>Learning the importance/difficulty weights from past exam results.</li>
+              <li>Calendar export (iCal) and notifications.</li>
+            </ul>
+          </section>
+
+          <!-- 13 -->
+          <section id="conclusion">
+            <h2>13. Conclusion</h2>
+            <p>The Smart Study Planner shows how classical Design-and-Analysis-of-Algorithms techniques solve a real student problem. A <strong>Greedy algorithm</strong> driven by a <strong>binary max-heap priority queue</strong> builds a feasible, deadline-aware timetable in O(D·n log n); <strong>merge sort</strong> ranks topics stably for the dashboard; <strong>Kahn's topological sort</strong> validates prerequisites; and <strong>0/1 Knapsack dynamic programming</strong> selects the optimal set of topics when the available hours are insufficient — the exact case where greedy is provably sub-optimal. Each algorithm is implemented from scratch, instrumented (comparison and heap-operation counters), analysed for time and space in best, average and worst case, and verified by an automated test-suite. The result is a working application with a modern, responsive interface and a complete analytical report suitable for a college-level DAA submission.</p>
+          </section>
+        </article>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/algorithms.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/sample-data.js"></script>
+  <script src="js/tests.js"></script>
+  <script src="js/docs.js"></script>
+</body>
+</html>

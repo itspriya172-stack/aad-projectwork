@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timetable — Smart Study Planner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar" id="topbar"></header>
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <main class="main">
+      <header class="page-header">
+        <div>
+          <h1>Study Timetable</h1>
+          <p>Greedy, priority-queue driven scheduler — optionally with 0/1 Knapsack DP topic selection.</p>
+        </div>
+        <div class="flex">
+          <button class="btn btn-warning" id="btn-reschedule" title="Carry unfinished past slots forward"><i class="fa-solid fa-rotate-right"></i> Reschedule unfinished</button>
+          <button class="btn" id="btn-generate"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate &amp; save</button>
+        </div>
+      </header>
+
+      <!-- Settings -->
+      <section class="card mb" id="settings-section">
+        <div class="card-header"><h2><i class="fa-solid fa-sliders"></i> Study settings</h2><span class="muted small" id="last-generated"></span></div>
+        <div class="form-row" style="margin-bottom:0">
+          <div><label for="set-hours">Daily study hours</label><input id="set-hours" type="number" min="0.5" max="16" step="0.5" value="5"></div>
+          <div><label for="set-start">Start time</label><input id="set-start" type="time" value="09:00"></div>
+          <div><label for="set-slot">Slot size</label><select id="set-slot"><option value="0.5">30 minutes</option><option value="1" selected>1 hour</option></select></div>
+          <div>
+            <label>Selection algorithm</label>
+            <div class="segmented" id="algo-switch">
+              <button data-v="greedy" class="active"><i class="fa-solid fa-bolt"></i> Greedy</button>
+              <button data-v="dp"><i class="fa-solid fa-table-cells"></i> Greedy + DP</button>
+            </div>
+          </div>
+        </div>
+        <p class="small muted" style="margin:.75rem 0 0" id="algo-help"></p>
+      </section>
+
+      <!-- Alerts -->
+      <section id="warnings" class="list mb" aria-live="polite"></section>
+
+      <!-- KPIs -->
+      <section class="grid grid-4 mb" id="kpis"></section>
+
+      <!-- DP comparison panel -->
+      <section class="card mb" id="dp-panel" style="display:none">
+        <div class="card-header"><h2><i class="fa-solid fa-scale-balanced"></i> Greedy vs Dynamic Programming (topic selection under limited hours)</h2></div>
+        <div id="dp-content"></div>
+      </section>
+
+      <!-- Timetable -->
+      <section class="card" id="timetable-section">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-calendar-days"></i> Timetable</h2>
+          <div class="flex">
+            <span class="legend" id="tt-legend"></span>
+            <div class="segmented" id="view-switch"><button data-v="cards" class="active"><i class="fa-solid fa-grip"></i></button><button data-v="table"><i class="fa-solid fa-list"></i></button></div>
+          </div>
+        </div>
+        <div id="timetable"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/algorithms.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/timetable.js"></script>
+</body>
+</html>
